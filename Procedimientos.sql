@@ -1,27 +1,44 @@
 USE SpaCanino
 ---------------------------------------------------------------------------------------------------
--- author: 
+-- author: Paola Rosenda Quinteros Perez
 -- Create Date: 2025-27-11
 -- Description: Inserta un nuevo cliente con validacion de telefono unico
 ---------------------------------------------------------------------------------------------------
-CREATE PROCEDURE RegistrarCliente
-	@Nombre Varchar(50),
-	@Telefono Varchar(10),
-	@Direccion Varchar(50) = Null
-	AS
-	BEGIN
-	
-	SELECT 
-	CASE WHEN EXISTS (SELECT 1 FROM Cliente WHERE Telefono = @Telefono) THEN 'Ya existe un cliente con este telefono.'
-	ELSE 'OK'
-	END AS Validacion
 
-	INSERT INTO Cliente(Nombre, Telefono, Direccion)
-	SELECT @Nombre, @Telefono, @Direccion
-	WHERE NOT EXISTS (SELECT 1 FROM Cliente WHERE Telefono=@Telefono);
+---------------------------------------------------------------------------------------------------
+-- Cambio por: Belen Mejia Medina
+-- Fecha de cambio: 2025-06-12
+-- Descripcion del cambio: Se cambio el case por el if para un mejor control del procedimiento
+-- y para evitar errores
+---------------------------------------------------------------------------------------------------
+create PROCEDURE RegistrarCliente
+	 @Nombre VARCHAR(50),
+    @Telefono VARCHAR(10),
+    @Direccion VARCHAR(50) = NULL,
+    @Resultado VARCHAR(200) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
 
+    DECLARE @NuevoID INT;
 
-	END
+    -- Validar teléfono duplicado
+    IF EXISTS (SELECT 1 FROM Cliente WHERE Telefono = @Telefono)
+    BEGIN
+        SET @Resultado = 'ERROR: Ya existe un cliente con este teléfono.';
+        RETURN;
+    END
+
+    -- Insertar cliente
+    INSERT INTO Cliente (Nombre, Telefono, Direccion, FechaRegistro)
+    VALUES (@Nombre, @Telefono, @Direccion, CAST(GETDATE() AS DATE));
+
+    -- Obtener ID recién insertado
+    SET @NuevoID = SCOPE_IDENTITY();
+
+    SET @Resultado = 'SUCCESS:ID=' + CAST(@NuevoID AS VARCHAR(50));
+END;
+GO
 	
 	EXEC dbo.RegistrarCliente
 ---------------------------------------------------------------------------------------------------

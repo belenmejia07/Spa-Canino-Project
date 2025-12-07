@@ -1,0 +1,10 @@
+REGISTRAR CLIENTE:
+Numero de telefono. Acepta que le pongamo un numero de telefono de un digito
+
+REGISRAR MASCOTA:
+Permite que dejemos los campos de nombre, temperamento, raza y fecha de nacimiento vacias, pero si le ponemos el id del cliente, osea del dueno del perro nos deja registrar al perro
+
+REGISTRAR CITA:
+si o si tenemos que poner la fecha y la hora, y los demas campos
+
+
