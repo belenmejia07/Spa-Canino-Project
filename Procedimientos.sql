@@ -1,4 +1,4 @@
-USE SpaCanino
+USE SpaCanino;
 ---------------------------------------------------------------------------------------------------
 -- author: Paola Rosenda Quinteros Perez
 -- Create Date: 2025-27-11
@@ -7,11 +7,12 @@ USE SpaCanino
 
 ---------------------------------------------------------------------------------------------------
 -- Cambio por: Belen Mejia Medina
--- Fecha de cambio: 2025-06-12
+-- Fecha de cambio: 2025-07-12
 -- Descripcion del cambio: Se cambio el case por el if para un mejor control del procedimiento
--- y para evitar errores
+-- y para evitar errores, se implemento return para salir del SP, se añadio SET NOCOUNT ON 
+-- para evitar confundir al programa con el mensaje de las filas afectadas
 ---------------------------------------------------------------------------------------------------
-create PROCEDURE RegistrarCliente
+alter PROCEDURE RegistrarCliente
 	 @Nombre VARCHAR(50),
     @Telefono VARCHAR(10),
     @Direccion VARCHAR(50) = NULL,
@@ -38,211 +39,377 @@ BEGIN
 
     SET @Resultado = 'SUCCESS:ID=' + CAST(@NuevoID AS VARCHAR(50));
 END;
-GO
+
 	
 	EXEC dbo.RegistrarCliente
+    go
 ---------------------------------------------------------------------------------------------------
 -- author: Paola Rosenda Quinteros Perez
 -- Create Date: 2025-27-11
 -- Description: Inserta una mascota asociada a un cliente y valida la fecha de nacimiento
 ---------------------------------------------------------------------------------------------------
 
-CREATE PROCEDURE RegistrarMascota
-	@Nombre Varchar(50),
-	@Raza Varchar(50) = NULL,
-	@FechaNacimiento Date = NULL,
-	@Temperamento Varchar(50),
-	@ID_Cliente INT
-	AS
-	BEGIN
+---------------------------------------------------------------------------------------------------
+-- Cambio por: Belen Mejia Medina
+-- Fecha de cambio: 2025-07-12
+-- Descripcion del cambio: Se cambio el case por el if para un mejor control del procedimiento, 
+-- se implemento return para salir del SP, se añadio SET NOCOUNT ON 
+-- para evitar confundir al programa con el mensaje de las filas afectadas
+---------------------------------------------------------------------------------------------------
 
-	SELECT 
-	CASE WHEN NOT EXISTS(SELECT 1 FROM Cliente WHERE ID_Cliente = @ID_Cliente) THEN 'El cliente no existe.'
-		 WHEN @FechaNacimiento IS NOT NULL AND @FechaNacimiento >= CAST(GETDATE() AS DATE) THEN 'La fecha no puede ser futura ni de hoy.'
-		 ELSE 'OK'
-		 END AS Validacion
-	
-	INSERT INTO Mascota (Nombre, Raza, FechaNacimiento, Temperamento, ID_Cliente)
-    SELECT @Nombre, @Raza, @FechaNacimiento, @Temperamento, @ID_Cliente
-    WHERE EXISTS (SELECT 1 FROM Cliente WHERE ID_Cliente = @ID_Cliente) AND (@FechaNacimiento IS NULL OR @FechaNacimiento < CAST(GETDATE() AS DATE));
+alter PROCEDURE RegistrarMascota
+    @Nombre VARCHAR(50),
+    @Temperamento VARCHAR(50),
+    @IdCliente INT,
+    @Raza VARCHAR(50) = NULL,
+    @FechaNac DATE = NULL,
+    @Resultado VARCHAR(200) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
 
-	END
+    -- Validar que el cliente exista
+    IF NOT EXISTS (SELECT 1 FROM Cliente WHERE id_cliente = @IdCliente)
+    BEGIN
+        SET @Resultado = 'El cliente no existe.';
+        RETURN;
+    END
+
+    -- Validar fecha futura
+    IF @FechaNac IS NOT NULL AND @FechaNac >= CAST(GETDATE() AS DATE)
+    BEGIN
+        SET @Resultado = 'La fecha no puede ser futura ni de hoy.';
+        RETURN;
+    END
+
+    -- Insertar mascota
+    INSERT INTO Mascota (Nombre, Temperamento, id_cliente, Raza, FechaNacimiento)
+    VALUES (@Nombre, @Temperamento, @IdCliente, @Raza, @FechaNac);
+
+    SET @Resultado = 'OK';
+END;
+
 
 	EXEC dbo.RegistrarMascota
+    go
 ---------------------------------------------------------------------------------------------------
 -- author: Paola Rosenda Quinteros Perez
 -- Create Date: 2025-27-11
 -- Description: Registra una cita para la mascota con un groomer y el recepcionista, tambien valida la fecha futura y estado.
 ---------------------------------------------------------------------------------------------------
-CREATE PROCEDURE RegistrarCita
-	@FechaHora        DATETIME,
-    @ID_Mascota       INT,
-    @ID_Groomer       INT,
-    @ID_Recepcionista INT,
-    @Estado           VARCHAR(15) = 'Pendiente',
-    @Nota             VARCHAR(200) = NULL
-	AS
-	BEGIN
 
-    SELECT
-	CASE WHEN NOT EXISTS (SELECT 1 FROM Mascota WHERE ID_Mascota = @ID_Mascota) THEN 'La mascota no existe.'
-            WHEN NOT EXISTS (SELECT 1 FROM Groomer WHERE ID_Groomer = @ID_Groomer) THEN 'El groomer no existe.'
-            WHEN NOT EXISTS (SELECT 1 FROM Recepcionista WHERE ID_Recepcionista = @ID_Recepcionista) THEN 'La recepcionista no existe.'
-            WHEN @FechaHora <= GETDATE() THEN 'La fecha y hora de la cita debe ser futura.'
-            WHEN @Estado NOT IN ('Pendiente','Confirmada','Atendida','Cancelada') THEN 'Estado de cita no valido.'
-            ELSE 'OK'
-	END AS Validacion;
+---------------------------------------------------------------------------------------------------
+-- Cambio por: Belen Mejia Medina
+-- Fecha de cambio: 2025-07-12
+-- Descripcion del cambio: Se cambio el case por el if para un mejor control del procedimiento, 
+-- se implemento return para salir del SP, se añadio SET NOCOUNT ON 
+-- para evitar confundir al programa con el mensaje de las filas afectadas, se añadio OUTPUT
+-- para devolver un mensaje a quien llame al SP (para el EXEC se debe espicificar OUTPUT al mandar 
+-- el parametro, y donde se guardara ese mensaje)
+---------------------------------------------------------------------------------------------------
+alter PROCEDURE RegistrarCita
+    @FechaHora DATETIME,
+    @IdMascota INT,
+    @IdGroomer INT,
+    @IdRecepcionista INT,
+    @Estado VARCHAR(20) = 'Pendiente',
+    @Nota VARCHAR(200) = NULL,
+    @Resultado VARCHAR(200) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
 
-    INSERT INTO Cita (FechayHora, Estado, Nota, ID_Mascota, ID_Groomer, ID_Recepcionista)
-    SELECT @FechaHora, @Estado, @Nota, @ID_Mascota, @ID_Groomer, @ID_Recepcionista
-    WHERE EXISTS (SELECT 1 FROM Mascota WHERE ID_Mascota = @ID_Mascota)
-			AND EXISTS (SELECT 1 FROM Groomer WHERE ID_Groomer = @ID_Groomer)
-			AND EXISTS (SELECT 1 FROM Recepcionista WHERE ID_Recepcionista = @ID_Recepcionista)
-			AND @FechaHora > GETDATE()
-			AND @Estado IN ('Pendiente','Confirmada','Atendida','Cancelada');
+    -- Validar existencia de mascota
+    IF NOT EXISTS (SELECT 1 FROM Mascota WHERE id_mascota = @IdMascota)
+    BEGIN
+        SET @Resultado = 'La mascota no existe.';
+        RETURN;
+    END
 
-	END
+    -- Validar existencia de groomer
+    IF NOT EXISTS (SELECT 1 FROM Groomer WHERE id_groomer = @IdGroomer)
+    BEGIN
+        SET @Resultado = 'El groomer no existe.';
+        RETURN;
+    END
+
+    -- Validar existencia de recepcionista
+    IF NOT EXISTS (SELECT 1 FROM Recepcionista WHERE id_recepcionista = @IdRecepcionista)
+    BEGIN
+        SET @Resultado = 'La recepcionista no existe.';
+        RETURN;
+    END
+
+    -- Validar fecha futura
+    IF @FechaHora <= GETDATE()
+    BEGIN
+        SET @Resultado = 'La fecha debe ser futura.';
+        RETURN;
+    END
+
+    -- Validar estado
+    IF @Estado NOT IN ('Pendiente', 'Confirmada', 'Atendida', 'Cancelada')
+    BEGIN
+        SET @Resultado = 'Estado de cita no válido.';
+        RETURN;
+    END
+
+    -- Insertar cita
+    INSERT INTO Cita (FechaYHora, Estado, Nota, id_mascota, id_groomer, id_recepcionista)
+    VALUES (@FechaHora, @Estado, @Nota, @IdMascota, @IdGroomer, @IdRecepcionista);
+
+    SET @Resultado = 'OK';
+END;
+
 
 	EXEC dbo.RegistrarCita
+    go
 ---------------------------------------------------------------------------------------------------
 -- author: Paola Rosenda Quinteros Perez
 -- Create Date: 2025-27-11
 -- Description: Agrega un servicio del catalogo a una cita, esto crea un registro en la tabla CitaDetalle
 ---------------------------------------------------------------------------------------------------
-ALTER PROCEDURE AgregarServicioaCita
-    @ID_Cita           INT,
-    @ID_Servicio       INT,
-    @CantidadServicios INT = 1
-	AS
-	BEGIN
 
-    SELECT
-    CASE WHEN NOT EXISTS (SELECT 1 FROM Cita WHERE ID_Cita = @ID_Cita) THEN 'La cita no existe.'
-         WHEN NOT EXISTS (SELECT 1 FROM Servicio WHERE ID_Servicio = @ID_Servicio) THEN 'El servicio no existe.'
-         WHEN @CantidadServicios <> 1 THEN 'Cantidad de servicios permitida es 1.'
-            ELSE 'OK'
-        END AS Validacion;
+---------------------------------------------------------------------------------------------------
+-- Cambio por: Belen Mejia Medina
+-- Fecha de cambio: 2025-07-12
+-- Descripcion del cambio: Se cambio el case por el if para un mejor control del procedimiento, 
+-- se implemento return para salir del SP, se añadio SET NOCOUNT ON 
+-- para evitar confundir al programa con el mensaje de las filas afectadas, se añadio OUTPUT
+-- para devolver un mensaje a quien llame al SP (para el EXEC se debe espicificar OUTPUT al mandar 
+-- el parametro, y donde se guardara ese mensaje)
+---------------------------------------------------------------------------------------------------
+create PROCEDURE AgregarServicioaCita
+    @IdCita INT,
+    @IdServicio INT,
+    @Cantidad INT = 1,
+    @Resultado VARCHAR(200) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
 
-    INSERT INTO CitaDetalle (CantidadServicios, ID_Cita, ID_Servicio)
-    SELECT @CantidadServicios, @ID_Cita, @ID_Servicio
-    WHERE EXISTS (SELECT 1 FROM Cita WHERE ID_Cita = @ID_Cita) 
-			AND EXISTS (SELECT 1 FROM Servicio WHERE ID_Servicio = @ID_Servicio)
-			AND @CantidadServicios = 1;
+    -- Validar existencia de la cita
+    IF NOT EXISTS (SELECT 1 FROM Cita WHERE id_cita = @IdCita)
+    BEGIN
+        SET @Resultado = 'La cita no existe.';
+        RETURN;
+    END
 
-	END
+    -- Validar existencia del servicio
+    IF NOT EXISTS (SELECT 1 FROM Servicio WHERE id_servicio = @IdServicio)
+    BEGIN
+        SET @Resultado = 'El servicio no existe.';
+        RETURN;
+    END
+
+    -- Validar cantidad
+    IF @Cantidad <> 1
+    BEGIN
+        SET @Resultado = 'Cantidad de servicios permitida es 1.';
+        RETURN;
+    END
+
+    -- Inserción en citaDetalle
+    INSERT INTO CitaDetalle (cantidadServicios, id_cita, id_servicio)
+    VALUES (@Cantidad, @IdCita, @IdServicio);
+
+    SET @Resultado = 'OK';
+END;
+
 
 	EXEC dbo.AgregarServicioaCita
+    go
 ---------------------------------------------------------------------------------------------------
 -- author: Paola Rosenda Quinteros Perez
 -- Create Date: 2025-27-11
 -- Description: Registra una factura asociada a una cita unicamente si esta existe, no tenga factura previa y que el total no sea 0.
 ---------------------------------------------------------------------------------------------------
-CREATE PROCEDURE RegistrarFactura
-    @ID_Cita INT,
-    @Total   INT,
-    @Metodo  VARCHAR(10)
-	AS
-	BEGIN
-    SELECT
-    CASE WHEN NOT EXISTS (SELECT 1 FROM Cita WHERE ID_Cita = @ID_Cita) THEN 'La cita indicada no existe.'
-         WHEN EXISTS (SELECT 1 FROM Factura WHERE ID_Cita = @ID_Cita) THEN 'Ya existe una factura para esta cita.'
-         WHEN @Total <= 0 THEN 'El total debe ser mayor a 0.'
-         WHEN UPPER(@Metodo) NOT IN ('TARJETA','QR','EFECTIVO') THEN 'Metodo de pago no permitido.'
-         ELSE 'OK'
-	END AS Validacion;
 
-    INSERT INTO Factura (Total, Metodo, ID_Cita)
-    SELECT @Total, @Metodo, @ID_Cita
-    WHERE EXISTS (SELECT 1 FROM Cita WHERE ID_Cita = @ID_Cita)
-			AND NOT EXISTS (SELECT 1 FROM Factura WHERE ID_Cita = @ID_Cita)
-			AND @Total > 0
-			AND UPPER(@Metodo) IN ('TARJETA','QR','EFECTIVO');
+---------------------------------------------------------------------------------------------------
+-- Cambio por: Belen Mejia Medina
+-- Fecha de cambio: 2025-07-12
+-- Descripcion del cambio: Se cambio el case por el if para un mejor control del procedimiento, 
+-- se implemento return para salir del SP, se añadio SET NOCOUNT ON 
+-- para evitar confundir al programa con el mensaje de las filas afectadas, se añadio OUTPUT
+-- para devolver un mensaje a quien llame al SP (para el EXEC se debe espicificar OUTPUT al mandar 
+-- el parametro, y donde se guardara ese mensaje)
+---------------------------------------------------------------------------------------------------
+alter PROCEDURE RegistrarFactura
+    @IdCita INT,
+    @Total INT,
+    @Metodo VARCHAR(20),
+    @Resultado VARCHAR(200) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
 
-END
+    -- Validar existencia de la cita
+    IF NOT EXISTS (SELECT 1 FROM Cita WHERE id_cita = @IdCita)
+    BEGIN
+        SET @Resultado = 'La cita no existe.';
+        RETURN;
+    END
+
+    -- Validar que no exista factura previa
+    IF EXISTS (SELECT 1 FROM Factura WHERE id_cita = @IdCita)
+    BEGIN
+        SET @Resultado = 'Ya existe una factura para esta cita.';
+        RETURN;
+    END
+
+    -- Validar total
+    IF @Total <= 0
+    BEGIN
+        SET @Resultado = 'El total debe ser mayor a 0.';
+        RETURN;
+    END
+
+    -- Validar método de pago
+    IF UPPER(@Metodo) NOT IN ('TARJETA','QR','EFECTIVO')
+    BEGIN
+        SET @Resultado = 'Método de pago no permitido.';
+        RETURN;
+    END
+
+    -- Insertar factura
+    INSERT INTO Factura (total, metodo, id_cita)
+    VALUES (@Total, @Metodo, @IdCita);
+
+    SET @Resultado = 'OK';
+END;
 
 	EXEC dbo.RegistrarFactura
-
+go
 
 ---------------------------------------------------------------------------------------------------
 -- author: 
 -- Create Date: 2025-05-12
 -- Description: Actualiza el estado de una cita existente
 ---------------------------------------------------------------------------------------------------
-CREATE PROCEDURE ActualizarEstadoCita
-	@ID_Cita INT,
-	@NuevoEstado Varchar (15)
-	AS
-	BEGIN
-	
-	SELECT
-    CASE WHEN NOT EXISTS (SELECT 1 FROM Cita WHERE ID_Cita = @ID_Cita) THEN 'La cita no existe.'
-		 WHEN @NuevoEstado NOT IN ('Pendiente','Confirmada','Atendida','Cancelada') THEN 'Estado no valido.'
-         ELSE 'OK'
-	END AS Validacion;
 
+---------------------------------------------------------------------------------------------------
+-- Cambio por: Belen Mejia Medina
+-- Fecha de cambio: 2025-07-12
+-- Descripcion del cambio: Se cambio el case por el if para un mejor control del procedimiento, 
+-- se implemento return para salir del SP, se añadio SET NOCOUNT ON 
+-- para evitar confundir al programa con el mensaje de las filas afectadas, se añadio OUTPUT
+-- para devolver un mensaje a quien llame al SP (para el EXEC se debe espicificar OUTPUT al mandar 
+-- el parametro, y donde se guardara ese mensaje)
+---------------------------------------------------------------------------------------------------
+alter PROCEDURE ActualizarEstadoCita
+    @IdCita INT,
+    @Estado VARCHAR(20),
+    @Resultado VARCHAR(200) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
 
+    -- Validar que la cita exista
+    IF NOT EXISTS (SELECT 1 FROM Cita WHERE id_cita = @IdCita)
+    BEGIN
+        SET @Resultado = 'La cita no existe.';
+        RETURN;
+    END
+
+    -- Validar estado válido
+    IF @Estado NOT IN ('Pendiente', 'Confirmada', 'Atendida', 'Cancelada')
+    BEGIN
+        SET @Resultado = 'Estado no válido.';
+        RETURN;
+    END
+
+    -- Actualizar estado
     UPDATE Cita
-    SET Estado = @NuevoEstado
-    WHERE ID_Cita = @ID_Cita AND @NuevoEstado IN ('Pendiente','Confirmada','Atendida','Cancelada')
-							 AND EXISTS (SELECT 1 FROM Cita WHERE ID_Cita = @ID_Cita);
+    SET estado = @Estado
+    WHERE id_cita = @IdCita;
 
-END
+    SET @Resultado = 'OK';
+END;
+
 
 	EXEC dbo.ActualizarEstadoCita
+go
 ---------------------------------------------------------------------------------------------------
 -- author: 
 -- Create Date: 2025-27-11
 -- Description: Muestra las citas programadas para el dia actual, muestra cita, fecha, estado, cliente, mascota, y groomer.
 ---------------------------------------------------------------------------------------------------
-CREATE PROCEDURE ListarCitasDeDiaHoy
-	AS
-	BEGIN
 
-	SELECT C.ID_Cita, C.FechayHora, C.Estado,
-			CL.Nombre AS Cliente,
-			M.Nombre AS Mascota,
-			G.Nombre AS Groomer
-	FROM Cita as C
-	INNER JOIN Mascota as M
-	ON C.ID_Mascota = M.ID_Mascota
-	INNER JOIN Cliente as CL
-	ON M.ID_Cliente = CL.ID_Cliente
-	INNER JOIN Groomer as G 
-	on C.ID_Groomer = G.ID_Groomer
-	WHERE CONVERT (DATE, C.FechayHora) = CONVERT(DATE, GETDATE())
-	ORDER BY C.FechayHora
+---------------------------------------------------------------------------------------------------
+-- Cambio por: Belen Mejia Medina
+-- Fecha de cambio: 2025-07-12
+-- Descripcion del cambio: Se añadio SET NOCOUNT ON para no confundir con el mensaje de cuantas filas
+-- fueron alteradas al que llame al SP
+---------------------------------------------------------------------------------------------------
+alter PROCEDURE ListarCitasDeDiaHoy
+AS
+BEGIN
+    SET NOCOUNT ON;
 
-END
+    SELECT 
+        c.id_cita,
+        c.fechayhora,
+        c.estado,
+        cl.nombre AS cliente,
+        m.nombre AS mascota,
+        g.nombre AS groomer
+    FROM Cita c
+    INNER JOIN Mascota m ON c.id_mascota = m.id_mascota
+    INNER JOIN Cliente cl ON m.id_cliente = cl.id_cliente
+    INNER JOIN Groomer g ON c.id_groomer = g.id_groomer
+    WHERE CONVERT(date, c.fechayhora) = CONVERT(date, GETDATE())
+    ORDER BY c.fechayhora;
+END;
+
 
 	EXEC dbo.ListarCitasDeDiaHoy
+    go
 ---------------------------------------------------------------------------------------------------
 -- author: Paola
 -- Create Date: 202est5-27-11
 -- Description: Muestra la información completa de una cita específica
 ---------------------------------------------------------------------------------------------------
-CREATE PROCEDURE VerDetallesDeCita
-    @ID_Cita INT
-    AS
+
+---------------------------------------------------------------------------------------------------
+-- Cambio por: Belen Mejia Medina
+-- Fecha de cambio: 2025-07-12
+-- Descripcion del cambio: Se cambio el case por el if para un mejor control del procedimiento, 
+-- se implemento return para salir del SP, se añadio SET NOCOUNT ON 
+-- para evitar confundir al programa con el mensaje de las filas afectadas, se cambio
+-- COALESCE por ISNULL para que devuelva un tipo de dato especifico y no uno global
+---------------------------------------------------------------------------------------------------
+alter PROCEDURE VerDetallesDeCita
+    @IdCita INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Validar si existe la cita
+    IF NOT EXISTS (SELECT 1 FROM Cita WHERE id_cita = @IdCita)
     BEGIN
-    SELECT
-    CASE WHEN NOT EXISTS (SELECT 1 FROM Cita WHERE ID_Cita = @ID_Cita) THEN 'La cita no existe.'
-    ELSE 'OK'
-    END AS Validacion;
+        RAISERROR ('ERROR: No existe una cita con ese ID.', 16, 1);
+        RETURN;
+    END
 
-    SELECT  c.ID_Cita, c.FechayHora, c.Estado, c.Nota,
-			cl.Nombre AS Cliente,
-			m.Nombre AS Mascota,
-			g.Nombre AS Groomer,
-			s.NombreServicio  AS Servicio,
-			s.Precio, cd.CantidadServicios
+    -- Retornar datos
+    SELECT 
+        c.id_cita AS cita_id,
+        c.fechayhora AS fecha_hora,
+        c.estado AS estado_cita,
+        c.nota AS nota_cita,
+        cl.nombre AS nombre_cliente,
+        m.nombre AS nombre_mascota,
+        g.nombre AS nombre_groomer,
+        ISNULL(s.nombreservicio, 'Sin servicio') AS nombre_servicio,
+        ISNULL(s.precio, 0) AS precio_servicio,
+        ISNULL(cd.cantidadservicios, 0) AS cantidad_servicio
     FROM Cita c
-    INNER JOIN Mascota      m  ON c.ID_Mascota = m.ID_Mascota
-    INNER JOIN Cliente      cl ON m.ID_Cliente = cl.ID_Cliente
-    INNER JOIN Groomer      g  ON c.ID_Groomer = g.ID_Groomer
-    INNER JOIN CitaDetalle  cd ON c.ID_Cita    = cd.ID_Cita
-    INNER JOIN Servicio     s  ON cd.ID_Servicio = s.ID_Servicio
-    WHERE c.ID_Cita = @ID_Cita;
-
-END
+    INNER JOIN Mascota m ON c.id_mascota = m.id_mascota
+    INNER JOIN Cliente cl ON m.id_cliente = cl.id_cliente
+    INNER JOIN Groomer g ON c.id_groomer = g.id_groomer
+    LEFT JOIN CitaDetalle cd ON c.id_cita = cd.id_cita
+    LEFT JOIN Servicio s ON cd.id_servicio = s.id_servicio
+    WHERE c.id_cita = @IdCita;
+END;
 
 	EXEC dbo.VerDetallesDeCita
