@@ -39,6 +39,13 @@ values ('paola', '12345678', 'zona cumavi'),
 	   ('rut', '11223344', '1er anillo'), 
 	   ('lucia', '11222345', 'zona los pozos');
 
+insert into Cliente (Nombre, Telefono, Direccion)
+values ('david', '11335577', 'av. Pirai  entre 3er y 2do anillo'),
+       ('luis', '11446677', 'av. Guapay entre 2do y 3er anillo'),
+	   ('jose', '11558899', 'av. Mutualista entre 7mo y 8vo anillo'),
+	   ('leonel', '22550066', 'av. Radial 27 entre 3er y 4to anillo'), 
+	   ('pedro', '00448822', '4to anillo entre radial 21 y av. Busch');
+
 --MASCOTA
 insert into Mascota (Nombre, Temperamento, ID_Cliente, Raza, FechaNacimiento)
 values ('toby', 'expolsivo', 1, 'pug', '2025-01-01'),
@@ -48,6 +55,13 @@ values ('toby', 'expolsivo', 1, 'pug', '2025-01-01'),
 	   ('juancho', 'amable', 5, 'dogo', '2015-12-25'),
 	   ('tongo', 'expolsivo', 6, 'chihuahua', '2025-01-01'),
 	   ('luciano', 'pasivo', 7, 'pitbull', '2022-03-01');
+
+insert into Mascota (Nombre, Temperamento, ID_Cliente, Raza, FechaNacimiento)
+values ('romeo', 'calmado', 8, 'san bernardo', '2024-01-01'),
+       ('julian', 'agresivo', 9, 'chihuahua', '2023-11-15'),
+	   ('felipe', 'nervioso', 10, 'pastor aleman', '2022-09-21'),
+	   ('roberto', 'explosivo', 11, 'pug', '2017-10-22'),
+	   ('saturno', 'amable', 12, 'rottweiler', '2019-07-13');
 
 --CITA
 insert into Cita (FechayHora, ID_Mascota, ID_Groomer, ID_Recepcionista, Estado, Nota)
@@ -59,17 +73,12 @@ values ('2025-12-26 14:00:00', 1, 1, 1, 'Confirmada', 'ninguna'),
 	   ('2025-12-20 10:00:00', 6, 2, 2, 'Atendida', 'ser amable'),
 	   ('2025-12-22 09:00:00', 7, 2, 2, 'Confirmada', 'ninguna');
 
---FACTURA
-insert into Factura (ID_Cita, Total, Metodo)
-values (4, 150, 'Efectivo'),
-       (5, 150, 'QR'),
-	   (6, 70, 'QR'), 
-	   (7, 200, 'QR');
-
-insert into Factura (ID_Cita, Total, Metodo)
-values (8, 150, 'Efectivo'),
-       (9, 150, 'QR'),
-	   (11, 70, 'QR');
+insert into Cita (FechayHora, ID_Mascota, ID_Groomer, ID_Recepcionista, Estado, Nota)
+values ('2025-12-11 14:00:00', 8, 3, 1, 'Pendiente', 'ninguna'),
+       ('2025-12-19 15:00:00', 9, 1, 2, 'Confirmada', 'tener cuidado'),
+	   ('2025-12-21 11:00:00', 10, 2, 1, 'Pendiente', 'ser amable'),
+       ('2025-12-23 08:00:00', 11, 3, 2, 'Cancelada', 'cuidarse de sus mordidas'),
+	   ('2025-12-26 18:00:00', 12, 1, 1, 'Confirmada', 'nada');
 
 --CITADETALLE
 insert into CitaDetalle (ID_Cita, ID_Servicio, CantidadServicios)
@@ -79,7 +88,33 @@ values (4, 10, 1),
 	   (7, 10, 1);
 
 insert into CitaDetalle (ID_Cita, ID_Servicio, CantidadServicios)
-values (8, 10, 1),
-       (9, 10, 1),
-	   (11, 9, 1);
+values (8, 2, 1),
+       (9, 1, 1),
+	   (11, 4, 1);
 
+insert into CitaDetalle (ID_Cita, ID_Servicio, CantidadServicios)
+values (15, 8, 1),
+       (16, 9, 1),
+	   (17, 6, 1),
+	   (18, 1, 1),
+	   (19, 8, 1);
+
+
+--FACTURA
+insert into Factura (ID_Cita, Total, Metodo)
+values (4, 150, 'Efectivo'),
+       (5, 150, 'QR'),
+	   (6, 70, 'QR'), 
+	   (7, 200, 'QR');
+
+insert into Factura (ID_Cita, Total, Metodo)
+values (8, 120, 'Efectivo'),
+       (9, 70, 'QR'),
+	   (11, 149, 'Tarjeta');
+
+insert into Factura (ID_Cita, Total, Metodo)
+values (15, 180, 'Efectivo'),
+       (16, 80, 'Tarjeta'),
+	   (17, 180, 'QR'), 
+	   (18, 70, 'Tarjeta'),
+	   (19, 180, 'Efectivo');
