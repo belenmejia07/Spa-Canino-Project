@@ -41,7 +41,7 @@ BEGIN
 END;
 
 	
-	EXEC dbo.RegistrarCliente
+	EXEC dbo.RegistrarCliente 
     go
 ---------------------------------------------------------------------------------------------------
 -- author: Paola Rosenda Quinteros Perez
