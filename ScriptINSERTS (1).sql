@@ -46,6 +46,19 @@ values ('david', '11335577', 'av. Pirai  entre 3er y 2do anillo'),
 	   ('leonel', '22550066', 'av. Radial 27 entre 3er y 4to anillo'), 
 	   ('pedro', '00448822', '4to anillo entre radial 21 y av. Busch');
 
+insert into Cliente (Nombre, Telefono, Direccion)
+values ('pablo', '00552244', 'av. Paragua entre 2do y 3er anillo');
+
+insert into Cliente (Nombre, Telefono, Direccion)
+values ('maria', '77440011', 'av. Moscu entre 5to y 4to anillo');
+
+insert into Cliente (Nombre, Telefono, Direccion)
+values ('juana', '66001133', 'radial 21 entre 4to y 5to anillo'),
+       ('felipe', '00119922', 'av. Busch entre 4to y 3er anillo'),
+	   ('juliana', '55005599', 'av. La Salle entre 2do y 3er anillo'),
+	   ('rene', '01928374', 'calle Bolivar entre Beni y Murillo'),
+	   ('marta', '65748392', 'calle Sarah entre Junin y Florida');
+
 --MASCOTA
 insert into Mascota (Nombre, Temperamento, ID_Cliente, Raza, FechaNacimiento)
 values ('toby', 'expolsivo', 1, 'pug', '2025-01-01'),
@@ -62,6 +75,9 @@ values ('romeo', 'calmado', 8, 'san bernardo', '2024-01-01'),
 	   ('felipe', 'nervioso', 10, 'pastor aleman', '2022-09-21'),
 	   ('roberto', 'explosivo', 11, 'pug', '2017-10-22'),
 	   ('saturno', 'amable', 12, 'rottweiler', '2019-07-13');
+
+insert into Mascota(Nombre, Temperamento, ID_Cliente, Raza, FechaNacimiento)
+values ('fiorella', 'calmada', 13, 'doberman', '2020-08-15');
 
 --CITA
 insert into Cita (FechayHora, ID_Mascota, ID_Groomer, ID_Recepcionista, Estado, Nota)
@@ -80,7 +96,10 @@ values ('2025-12-11 14:00:00', 8, 3, 1, 'Pendiente', 'ninguna'),
        ('2025-12-23 08:00:00', 11, 3, 2, 'Cancelada', 'cuidarse de sus mordidas'),
 	   ('2025-12-26 18:00:00', 12, 1, 1, 'Confirmada', 'nada');
 
---CITADETALLE
+insert into Cita (FechayHora, ID_Mascota, ID_Groomer, ID_Recepcionista, Estado, Nota, ID_Servicio)
+values ('2025-12-18 08:00:00', 13, 1, 1, 'Confirmada', 'tener cuidado con sus dientes', 10);
+
+--CITADETALLE (Tabla borrada)
 insert into CitaDetalle (ID_Cita, ID_Servicio, CantidadServicios)
 values (4, 10, 1),
        (5, 10, 1),
@@ -118,3 +137,6 @@ values (15, 180, 'Efectivo'),
 	   (17, 180, 'QR'), 
 	   (18, 70, 'Tarjeta'),
 	   (19, 180, 'Efectivo');
+
+insert into Factura (ID_Cita, Total, Metodo)
+values (20, 150, 'Efectivo');

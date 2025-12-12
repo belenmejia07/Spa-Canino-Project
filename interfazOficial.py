@@ -83,41 +83,149 @@ def registrar_cliente():
         messagebox.showerror("Error", f"No se pudo registrar cliente:\n\n{str(e)}")
 
 def registrar_mascota():
-    nombre = entry_mascota_nombre.get()
-    temperamento = entry_mascota_temperamento.get()
-    id_cliente = entry_mascota_id_cliente.get()
-    raza = entry_mascota_raza.get()
-    fecha_nac = entry_mascota_fecha.get()
+    nombre = entry_mascota_nombre.get().strip()
+    temperamento = entry_mascota_temperamento.get().strip()
+    id_cliente = entry_mascota_id_cliente.get().strip()
+    raza = entry_mascota_raza.get().strip()
+    fecha_nac = entry_mascota_fecha.get().strip()
+
+    # Validación básica de campos obligatorios
+    if not nombre or not temperamento or not id_cliente:
+        messagebox.showwarning("Advertencia", "Nombre, temperamento e ID de cliente son obligatorios.")
+        return
+
     fecha_nac_val = None
     if fecha_nac:
-        fecha_nac_val = datetime.strptime(fecha_nac, "%Y-%m-%d").date()
+        try:
+            fecha_nac_val = datetime.strptime(fecha_nac, "%Y-%m-%d").date()
+        except:
+            messagebox.showwarning("Error", "La fecha debe tener el formato YYYY-MM-DD.")
+            return
+
+        # Validación de fecha futura o igual a hoy
+        if fecha_nac_val >= datetime.today().date():
+            messagebox.showerror("Error", "La fecha de nacimiento no puede ser futura ni de hoy.")
+            return
+
     try:
-        # SOLO ESTA LÍNEA CAMBIA:
-        resultado = ejecutar_consulta("SELECT registrar_mascota(%s, %s, %s, %s, %s);",
-                                     (nombre, temperamento, id_cliente, raza, fecha_nac_val))
-        
-        messagebox.showinfo("Resultado", f"{resultado}\nMascota: {nombre}, Temperamento: {temperamento}, Cliente ID: {id_cliente}")
+        # Llamada a la función SQL
+        resultado = ejecutar_consulta(
+            "SELECT registrar_mascota(%s, %s, %s, %s, %s);",
+            (nombre, temperamento, id_cliente, raza if raza else None, fecha_nac_val)
+        )
+
+        mensaje = resultado[0][0] if resultado else "Sin respuesta"
+
+        # Extraer el ID si viene en formato "OK ID=###"
+        id_mascota = None
+        if "ID=" in mensaje:
+            id_mascota = mensaje.split("ID=")[1].strip()
+
+        # Construir mensaje para el usuario
+        msg = "🐶 MASCOTA REGISTRADA CON ÉXITO\n\n"
+
+        if id_mascota:
+            msg += f"➡ ID Mascota: {id_mascota}\n"
+
+        msg += (
+            f"➡ Nombre: {nombre}\n"
+            f"➡ Temperamento: {temperamento}\n"
+            f"➡ ID Cliente: {id_cliente}\n"
+            f"➡ Raza: {raza or 'No especificada'}\n"
+            f"➡ Fecha Nac.: {fecha_nac or 'No especificada'}\n"
+        )
+
+        messagebox.showinfo("Mascota Registrada", msg)
+
+        # Limpiar campos
+        entry_mascota_nombre.delete(0, tk.END)
+        entry_mascota_temperamento.delete(0, tk.END)
+        entry_mascota_id_cliente.delete(0, tk.END)
+        entry_mascota_raza.delete(0, tk.END)
+        entry_mascota_fecha.delete(0, tk.END)
+
     except Exception as e:
         messagebox.showerror("Error", str(e))
+
+
 
 def registrar_cita():
-    fecha_hora = entry_cita_fecha.get()
-    id_mascota = entry_cita_id_mascota.get()
-    id_groomer = entry_cita_id_groomer.get()
-    id_recepcionista = entry_cita_id_recepcionista.get()
-    estado = entry_cita_estado.get()
-    nota = entry_cita_nota.get()
+    fecha_hora = entry_cita_fecha.get().strip()
+    id_mascota = entry_cita_id_mascota.get().strip()
+    id_groomer = entry_cita_id_groomer.get().strip()
+    id_recepcionista = entry_cita_id_recepcionista.get().strip()
+    estado = entry_cita_estado.get().strip()
+    nota = entry_cita_nota.get().strip()
+    id_servicio = entry_cita_id_servicio.get().strip()
+
+    # Validación básica de campos obligatorios
+    if not fecha_hora or not id_mascota or not id_groomer or not id_recepcionista or not id_servicio:
+        messagebox.showwarning("Advertencia", "Todos los campos obligatorios deben ser completados.")
+        return
+
     try:
-        # SOLO ESTA LÍNEA CAMBIA:
-        resultado = ejecutar_consulta("SELECT registrar_cita(%s, %s, %s, %s, %s, %s);",
-                                     (datetime.strptime(fecha_hora, "%Y-%m-%d %H:%M:%S"),
-                                      id_mascota, id_groomer, id_recepcionista, estado, nota))
-        
-        messagebox.showinfo("Resultado", f"{resultado}\nCita para Mascota ID: {id_mascota} el {fecha_hora}")
+        # Convertir fecha/hora
+        fecha_hora_val = datetime.strptime(fecha_hora, "%Y-%m-%d %H:%M:%S")
+
+        # Ejecutar función SQL
+        resultado = ejecutar_consulta(
+            "SELECT registrar_cita(%s, %s, %s, %s, %s, %s, %s);",
+            (fecha_hora_val,
+             id_mascota,
+             id_groomer,
+             id_recepcionista,
+             id_servicio,
+             estado,
+             nota if nota else None)
+        )
+
+        mensaje = resultado[0][0] if resultado else "Sin respuesta"
+
+        # Revisar si hay error devuelto por la función SQL
+        if mensaje.startswith("ERROR"):
+            messagebox.showerror("Error al registrar cita", mensaje)
+            return
+
+        # Extraer el ID de la cita
+        id_cita = None
+        if "ID=" in mensaje:
+            id_cita = mensaje.split("ID=")[1].strip()
+
+        # Construir mensaje de confirmación
+        msg = "📅 CITA REGISTRADA CON ÉXITO\n\n"
+
+        if id_cita:
+            msg += f"➡ ID de la cita: {id_cita}\n"
+        else:
+            msg += "➡ ID de la cita: (No recibido)\n"
+
+        msg += (
+            f"➡ ID Mascota: {id_mascota}\n"
+            f"➡ ID Groomer: {id_groomer}\n"
+            f"➡ ID Recepcionista: {id_recepcionista}\n"
+            f"➡ ID Servicio: {id_servicio}\n"
+            f"➡ Fecha y Hora: {fecha_hora}\n"
+            f"➡ Estado: {estado}\n"
+            f"➡ Nota: {nota or 'Sin nota'}\n"
+        )
+
+        messagebox.showinfo("Cita Registrada", msg)
+
+        # Limpiar campos
+        entry_cita_fecha.delete(0, tk.END)
+        entry_cita_id_mascota.delete(0, tk.END)
+        entry_cita_id_groomer.delete(0, tk.END)
+        entry_cita_id_recepcionista.delete(0, tk.END)
+        entry_cita_id_servicio.delete(0, tk.END)
+        entry_cita_estado.delete(0, tk.END)
+        entry_cita_nota.delete(0, tk.END)
+
     except Exception as e:
         messagebox.showerror("Error", str(e))
 
-def agregar_servicio():
+
+
+'''def agregar_servicio():
     id_cita = entry_servicio_id_cita.get()
     id_servicio = entry_servicio_id_servicio.get()
     cantidad = entry_servicio_cantidad.get() or 1
@@ -128,7 +236,7 @@ def agregar_servicio():
         
         messagebox.showinfo("Resultado", f"{resultado}\nServicio ID: {id_servicio} agregado a Cita ID: {id_cita}")
     except Exception as e:
-        messagebox.showerror("Error", str(e))
+        messagebox.showerror("Error", str(e))'''
 
 def registrar_factura():
     id_cita = entry_factura_id_cita.get()
@@ -179,9 +287,10 @@ def ver_detalles():
             return
         texto = ""
         for det in detalles:
-            texto += (f"ID Cita: {det[0]}\nFechaHora: {det[1]}\nEstado: {det[2]}\nNota: {det[3]}"
-                      f"\nCliente: {det[4]}\nMascota: {det[5]}\nGroomer: {det[6]}"
-                      f"\nServicio: {det[7]}\nPrecio: {det[8]}\nCantidad: {det[9]}\n\n")
+           texto += (f"ID Cita: {det[0]}\nFechaHora: {det[1]}\nEstado: {det[2]}\nNota: {det[3]}"
+          f"\nCliente: {det[4]}\nMascota: {det[5]}\nGroomer: {det[6]}"
+          f"\nServicio: {det[7]}\nPrecio: {det[8]}\n\n")
+
         messagebox.showinfo("Detalles de Cita", texto)
     except Exception as e:
         messagebox.showerror("Error", str(e))
@@ -221,32 +330,42 @@ entry_mascota_fecha = tk.Entry(tab_mascota); entry_mascota_fecha.grid(row=4, col
 tk.Button(tab_mascota, text="Registrar Mascota", command=registrar_mascota).grid(row=5, column=0, columnspan=2)
 
 # --- Pestaña Cita --- (EXACTAMENTE IGUAL)
+# --- Pestaña Cita --- (MODIFICADA)
 tab_cita = ttk.Frame(notebook)
 notebook.add(tab_cita, text="Cita")
+
 tk.Label(tab_cita, text="FechaHora (YYYY-MM-DD HH:MM:SS):").grid(row=0, column=0)
 entry_cita_fecha = tk.Entry(tab_cita); entry_cita_fecha.grid(row=0, column=1)
+
 tk.Label(tab_cita, text="ID Mascota:").grid(row=1, column=0)
 entry_cita_id_mascota = tk.Entry(tab_cita); entry_cita_id_mascota.grid(row=1, column=1)
+
 tk.Label(tab_cita, text="ID Groomer:").grid(row=2, column=0)
 entry_cita_id_groomer = tk.Entry(tab_cita); entry_cita_id_groomer.grid(row=2, column=1)
+
 tk.Label(tab_cita, text="ID Recepcionista:").grid(row=3, column=0)
 entry_cita_id_recepcionista = tk.Entry(tab_cita); entry_cita_id_recepcionista.grid(row=3, column=1)
+
 tk.Label(tab_cita, text="Estado:").grid(row=4, column=0)
 entry_cita_estado = tk.Entry(tab_cita); entry_cita_estado.grid(row=4, column=1)
+
 tk.Label(tab_cita, text="Nota:").grid(row=5, column=0)
 entry_cita_nota = tk.Entry(tab_cita); entry_cita_nota.grid(row=5, column=1)
-tk.Button(tab_cita, text="Registrar Cita", command=registrar_cita).grid(row=6, column=0, columnspan=2)
+
+tk.Label(tab_cita, text="ID Servicio:").grid(row=6, column=0)
+entry_cita_id_servicio = tk.Entry(tab_cita); entry_cita_id_servicio.grid(row=6, column=1)
+
+tk.Button(tab_cita, text="Registrar Cita", command=registrar_cita).grid(row=7, column=0, columnspan=2)
 
 # --- Pestaña Servicio --- (EXACTAMENTE IGUAL)
-tab_servicio = ttk.Frame(notebook)
-notebook.add(tab_servicio, text="Servicio a Cita")
-tk.Label(tab_servicio, text="ID Cita:").grid(row=0, column=0)
-entry_servicio_id_cita = tk.Entry(tab_servicio); entry_servicio_id_cita.grid(row=0, column=1)
-tk.Label(tab_servicio, text="ID Servicio:").grid(row=1, column=0)
-entry_servicio_id_servicio = tk.Entry(tab_servicio); entry_servicio_id_servicio.grid(row=1, column=1)
-tk.Label(tab_servicio, text="Cantidad (1 por defecto):").grid(row=2, column=0)
-entry_servicio_cantidad = tk.Entry(tab_servicio); entry_servicio_cantidad.grid(row=2, column=1)
-tk.Button(tab_servicio, text="Agregar Servicio", command=agregar_servicio).grid(row=3, column=0, columnspan=2)
+#tab_servicio = ttk.Frame(notebook)
+#notebook.add(tab_servicio, text="Servicio a Cita")
+#tk.Label(tab_servicio, text="ID Cita:").grid(row=0, column=0)
+#tk.Label(tab_servicio, text="ID Servicio:").grid(row=1, column=0)
+#entry_servicio_id_servicio = tk.Entry(tab_servicio); entry_servicio_id_servicio.grid(row=1, column=1)
+#tk.Label(tab_servicio, text="Cantidad (1 por defecto):").grid(row=2, column=0)
+#entry_servicio_cantidad = tk.Entry(tab_servicio); entry_servicio_cantidad.grid(row=2, column=1)
+#tk.Button(tab_servicio, text="Agregar Servicio", command=agregar_servicio).grid(row=3, column=0, columnspan=2)
 
 # --- Pestaña Factura --- (EXACTAMENTE IGUAL)
 tab_factura = ttk.Frame(notebook)

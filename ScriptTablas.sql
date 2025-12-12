@@ -7,10 +7,9 @@ use SpaCanino
 Create Table Recepcionista (
 	ID_Recepcionista INT IDENTITY (1,1) PRIMARY KEY,
 	Nombre VARCHAR (50) NOT NULL,
-	Telefono VARCHAR(10) NOT NULL,
-	Usuario VARCHAR (50) NOT NULL UNIQUE,
-	PasswordHash Varchar (50) NOT NULL 
+	Telefono VARCHAR(10) NOT NULL
 )
+
 Create Table Cliente(
 	ID_Cliente INT IDENTITY (1,1) PRIMARY KEY,
 	Nombre VARCHAR (50) NOT NULL,
@@ -18,6 +17,7 @@ Create Table Cliente(
 	Direccion VARCHAR (50) NULL,
 	FechaRegistro DATE NOT NULL DEFAULT (CAST(GETDATE() AS DATE))
 )
+
 Create Table Mascota (
 	ID_Mascota INT IDENTITY (1,1) PRIMARY KEY,
 	Nombre VARCHAR (50) NOT NULL,
@@ -36,7 +36,7 @@ Create Table Groomer(
 	Especialidad VARCHAR(50) NULL
 )
 
-CREATE Table Cita (
+create Table Cita (
 	ID_Cita INT IDENTITY(1,1) PRIMARY KEY,
 	FechayHora DATETIME NOT NULL
 		CHECK(FechayHora > CAST(GETDATE() AS DATE)),
@@ -57,15 +57,6 @@ Create Table Servicio(
 	Precio INT NOT NULL,
 	Descripcion VARCHAR (1000) NOT NULL,
 	Duracion INT NOT NULL
-)
-Create Table CitaDetalle(
-	ID_Detalle INT IDENTITY (1,1) PRIMARY KEY,
-	CantidadServicios INT NOT NULL
-		CHECK (CantidadServicios = 1),
-	ID_Cita INT NOT NULL,
-	ID_Servicio INT NOT NULL,
-	FOREIGN KEY (ID_Cita) REFERENCES Cita(ID_Cita),
-	FOREIGN KEY (ID_Servicio) REFERENCES Servicio(ID_Servicio)
 )
 
 Create Table Factura(
