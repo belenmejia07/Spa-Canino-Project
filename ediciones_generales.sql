@@ -39,10 +39,6 @@ update Cita
 set ID_Servicio=8
 where ID_Cita=19
 
--- Actualizando la fecha y hora de la tabla cita
---update Cita
---set FechayHora=
-
 -- Eliminando la constraint de la columna usuario
 alter table recepcionista
 drop constraint UQ__Recepcio__E3237CF74D5480A0;

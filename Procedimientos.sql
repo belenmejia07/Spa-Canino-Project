@@ -55,7 +55,7 @@ BEGIN
         SET @Resultado = 'SUCCESS:ID=' + CAST(@NuevoID AS VARCHAR(50));
     END TRY
     BEGIN CATCH
-        -- Captura de errores
+        -- Captura de errores que no hayan sido captados por las anteriores validaciones
         SET @Resultado = 'ERROR: ' + ERROR_MESSAGE();
     END CATCH
 END;
@@ -110,7 +110,7 @@ BEGIN
             RETURN;
         END
 
-        -- Verificar fecha de nacimiento válida
+        -- Verificar si la fecha de nacimiento es válida
         IF @FechaNac IS NOT NULL AND @FechaNac >= CAST(GETDATE() AS DATE)
         BEGIN
             SET @Resultado = 'ERROR: La fecha de nacimiento no puede ser futura ni de hoy.';
@@ -124,7 +124,7 @@ BEGIN
         -- Obtener ID recién insertado
         SET @NuevoID = SCOPE_IDENTITY();
 
-        -- Retornar resultado
+        -- Retornar resultado con ID
         SET @Resultado = 'OK ID=' + CAST(@NuevoID AS VARCHAR(50));
     END TRY
     BEGIN CATCH
@@ -335,7 +335,7 @@ END;
 go
 
 ---------------------------------------------------------------------------------------------------
--- author: 
+-- author: Paola Rosenda Quinteros Perez
 -- Create Date: 2025-05-12
 -- Description: Actualiza el estado de una cita existente
 ---------------------------------------------------------------------------------------------------
@@ -397,7 +397,7 @@ END;
 	EXEC dbo.ActualizarEstadoCita
 go
 ---------------------------------------------------------------------------------------------------
--- author: 
+-- author: Paola Rosenda Quinteros Perez
 -- Create Date: 2025-27-11
 -- Description: Muestra las citas programadas para el dia actual, muestra cita, fecha, estado, cliente, mascota, y groomer.
 ---------------------------------------------------------------------------------------------------
@@ -437,8 +437,9 @@ END;
 
 	EXEC dbo.ListarCitasDeDiaHoy
     go
+
 ---------------------------------------------------------------------------------------------------
--- author: Paola
+-- author: Paola Rosenda Quinteros Perez
 -- Create Date: 202est5-27-11
 -- Description: Muestra la información completa de una cita específica
 ---------------------------------------------------------------------------------------------------
