@@ -21,6 +21,10 @@ from Recepcionista
 select *
 from Servicio
 
+update Cita
+set Estado='Atendida'
+where ID_Cita=5;
+
 -- Corrigiendo el  precio de los servicios
 update Servicio
 set Precio=180

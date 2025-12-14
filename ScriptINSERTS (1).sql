@@ -95,6 +95,12 @@ values ('flaco', 'calmada', 15, 'bulldog', '2015-09-25'),
 insert into Mascota(Nombre, Temperamento, ID_Cliente, Raza, FechaNacimiento)
 values ('chocolate', 'explosivo', 20, 'pitbull', '2019-09-09');
 
+insert into Mascota(Nombre, Temperamento, ID_Cliente, Raza, FechaNacimiento)
+values ('lana', 'explosivo', 19, 'poodle', '2015-01-01'),
+       ('rebeca', 'pasiva', 15, 'pitbull', '2020-10-09'),
+       ('chiqui', 'calmado', 18, 'desconocida', '2025-11-09'),
+	   ('yiyi', 'pasiva', 18, 'desconocida', '2019-11-09');
+
 --CITA
 insert into Cita (FechayHora, ID_Mascota, ID_Groomer, ID_Recepcionista, Estado, Nota)
 values ('2025-12-26 14:00:00', 1, 1, 1, 'Confirmada', 'ninguna'),
@@ -128,6 +134,19 @@ values ('2025-12-27 09:00:00', 18, 2, 2, 'Pendiente', 'ninguna', 5),
 insert into Cita (FechayHora, ID_Mascota, ID_Groomer, ID_Recepcionista, Estado, Nota, ID_Servicio)
 values ('2025-12-30 14:00:00', 23, 3, 2, 'Pendiente', 'ninguna', 10);
 
+insert into Cita (FechayHora, ID_Mascota, ID_Groomer, ID_Recepcionista, Estado, Nota, ID_Servicio)
+values ('2025-12-27 14:00:00', 24, 3, 2, 'Pendiente', 'ninguna', 1),
+       ('2025-12-14 08:00:00', 25, 1, 2, 'Pendiente', 'ninguna', 10),
+       ('2025-12-21 11:00:00', 26, 2, 2, 'Confirmada', 'tener cuidado', 10),
+       ('2025-12-22 08:00:00', 27, 1, 2, 'Pendiente', 'ninguna', 10);
+
+	   
+insert into Cita (FechayHora, ID_Mascota, ID_Groomer, ID_Recepcionista, Estado, Nota, ID_Servicio)
+values ('2025-12-27 14:00:00', 24, 3, 2, 'Pendiente', 'ninguna', 1),
+       ('2025-12-14 09:00:00', 25, 2, 2, 'Pendiente', 'ninguna', 10),
+       ('2025-12-21 10:00:00', 25, 3, 1, 'Confirmada', 'ninguna', 10),
+       ('2025-12-22 11:00:00', 25, 1, 1, 'Pendiente', 'ninguna', 10);
+
 --FACTURA
 insert into Factura (ID_Cita, Total, Metodo)
 values (4, 150, 'Efectivo'),
@@ -160,3 +179,16 @@ values (21, 150, 'Efectivo'),
 	   
 insert into Factura (ID_Cita, Total, Metodo)
 values (27, 150, 'Efectivo');
+
+insert into Factura (ID_Cita, Total, Metodo)
+values (28, 70, 'Efectivo'),
+       (29, 150, 'QR'),
+	   (30, 150, 'QR'),
+	   (31, 150, 'QR');
+
+	   
+insert into Factura (ID_Cita, Total, Metodo)
+values (32, 70, 'Efectivo'),
+       (33, 150, 'QR'),
+	   (34, 150, 'QR'),
+	   (35, 150, 'Tarjeta');

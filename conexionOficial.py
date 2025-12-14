@@ -5,13 +5,30 @@ import atexit
 import threading
 
 # Configuración de Supabase
-CONFIG = {
+'''CONFIG = {
     "host": "db.krvvmwbplewbcsncbwcg.supabase.co",
-    "database": "postgres",
     "user": "postgres",
     "password": "spacaninopaola",
     "port": 5432
+}'''
+
+'''CONFIG = {
+    "host": "db.krvvmwbplewbcsncbwcg.supabase.co",
+    "user": "postgres",
+    "password": "spacaninopaola",
+    "dbname": "postgres",   # 🔴 OBLIGATORIO
+    "port": 5432
+}'''
+
+CONFIG = {
+    "host": "aws-1-us-east-2.pooler.supabase.com",  # 👈 NUEVO HOST
+    "user": "postgres.krvvmwbplewbcsncbwcg",
+    "password": "spacaninopaola",
+    "dbname": "postgres",
+    "port": 6543                                  # 👈 NUEVO PUERTO
 }
+
+
 
 # Variables globales
 pool_conexiones = None
